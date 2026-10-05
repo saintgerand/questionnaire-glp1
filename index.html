@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traitement GLP-1 – Questionnaire</title>
+<style>
+  /* ============================================================
+     RÉGLAGE : remplacer l'adresse du secrétariat ci-dessous
+     (variable SECRETARIAT_EMAIL dans le script en bas du fichier)
+     ============================================================ */
+  :root {
+    --blue: #1C5C8A; --blue-soft: #E8F0F7; --ink: #1E2A33; --muted: #5B6B78;
+    --line: #D5DEE6; --bg: #F6F8FA; --card: #FFFFFF;
+    --green: #2E7D32; --green-soft: #EEF7EE; --red: #B23A3A; --red-soft: #FBEFEF;
+    --amber: #9A6700; --amber-soft: #FFF6E0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.5 Calibri, "Segoe UI", system-ui, -apple-system, sans-serif; }
+  header { background: var(--blue); color: #fff; padding: 14px 16px; }
+  header .clinic { font-size: 13px; opacity: .85; }
+  header h1 { margin: 2px 0 0; font-size: 20px; font-weight: 600; }
+  .progress { height: 5px; background: #cfdbe6; }
+  .progress > div { height: 100%; width: 0; background: #6FA8D6; transition: width .3s; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  h2 { color: var(--blue); font-size: 19px; margin: 0 0 6px; }
+  h3 { font-size: 16px; margin: 14px 0 6px; color: var(--blue); }
+  p.hint { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  label.field { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 15px; }
+  input[type=text], input[type=number], input[type=date], input[type=tel], textarea {
+    width: 100%; padding: 11px 12px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  textarea { min-height: 80px; resize: vertical; }
+  .row { display: flex; gap: 10px; } .row > div { flex: 1; }
+  .opt { display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--line);
+    border-radius: 8px; margin: 6px 0; cursor: pointer; background: #fff; }
+  .opt input { margin-top: 3px; width: 20px; height: 20px; flex: none; accent-color: var(--blue); }
+  .opt:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+  .opt small { display: block; color: var(--muted); font-size: 13px; }
+  .yn { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 8px 0; background: #fff; }
+  .yn .q { margin-bottom: 8px; }
+  .yn .q small { display: block; color: var(--muted); font-size: 13px; }
+  .yn .btns { display: flex; gap: 8px; }
+  .yn .btns label { flex: 1; text-align: center; padding: 8px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+  .yn .btns input { display: none; }
+  .yn .btns label:has(input:checked) { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .bmi { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--blue-soft); font-weight: 600; display: none; }
+  .cols { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 560px) { .cols { grid-template-columns: 1fr 1fr; } }
+  .pro { background: var(--green-soft); border: 1px solid #b9dcbb; border-radius: 10px; padding: 12px; }
+  .con { background: var(--red-soft); border: 1px solid #e6c0c0; border-radius: 10px; padding: 12px; }
+  .pro h3 { color: var(--green); margin-top: 0; } .con h3 { color: var(--red); margin-top: 0; }
+  ul { margin: 0; padding-left: 20px; } li { margin: 4px 0; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 480px; }
+  th, td { border: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; }
+  th { background: var(--blue); color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #F9FBFC; }
+  .alert { border-radius: 8px; padding: 11px 12px; margin: 8px 0; font-size: 15px; }
+  .alert.ok { background: var(--green-soft); border-left: 4px solid var(--green); }
+  .alert.warn { background: var(--amber-soft); border-left: 4px solid var(--amber); }
+  .alert.stop { background: var(--red-soft); border-left: 4px solid var(--red); }
+  .alert.info { background: var(--blue-soft); border-left: 4px solid var(--blue); }
+  .nav { display: flex; gap: 10px; margin-top: 6px; }
+  button { font: inherit; font-weight: 600; padding: 13px 16px; border-radius: 10px; border: 0; cursor: pointer; }
+  .primary { background: var(--blue); color: #fff; flex: 2; }
+  .secondary { background: #fff; color: var(--blue); border: 1px solid var(--blue); flex: 1; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .error { color: var(--red); font-size: 14px; margin-top: 8px; display: none; }
+  pre.recap { white-space: pre-wrap; font: 13px/1.45 ui-monospace, Consolas, monospace; background: #F3F6F8;
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px; max-height: 260px; overflow: auto; }
+  .crisis { display: none; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 10px 16px 28px; }
+  @media print { header, .nav, .progress, footer, #sendBlock { display: none !important; } .step { display: block !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="clinic">Clinique Manoir en Berry · Endocrinologie – Diabétologie – Nutrition</div>
+  <h1>Traitement par GLP-1 : bien choisir</h1>
+</header>
+<div class="progress"><div id="bar"></div></div>
+
+<main>
+<!-- ÉTAPE 0 : Accueil -->
+<section class="step active" data-step="0">
+  <div class="card">
+    <h2>Bienvenue</h2>
+    <p>Ce questionnaire vous aide à comprendre les traitements de la famille des GLP-1 (Mounjaro, Wegovy, Ozempic, Trulicity, Saxenda, Victoza) et à préparer votre rendez-vous.</p>
+    <ul>
+      <li>Il prend environ 5 minutes.</li>
+      <li>Il vous indique si vous semblez correspondre aux critères. Seul votre médecin peut confirmer et prescrire.</li>
+      <li>Vos réponses ne sont pas enregistrées sur ce site. À la fin, c'est vous qui choisissez de les envoyer au secrétariat depuis votre messagerie.</li>
+    </ul>
+    <div class="alert info">Protection de vos données : ce que vous saisissez (nom, date de naissance, santé) reste uniquement sur votre téléphone ou votre ordinateur. Rien n'est envoyé sur Internet ni conservé par ce site. Vos informations ne partent que si vous envoyez vous-même le mail au secrétariat, et elles disparaissent quand vous fermez la page.</div>
+  </div>
+  <div class="nav"><button class="primary" data-next>Commencer</button></div>
+</section>
+
+<!-- ÉTAPE 1 : Identité et mesures -->
+<section class="step" data-step="1">
+  <div class="card">
+    <h2>Vous</h2>
+    <p class="hint">Ces informations permettent au secrétariat de retrouver votre dossier.</p>
+    <div class="row">
+      <div><label class="field" for="nom">Nom</label><input type="text" id="nom" autocomplete="family-name"></div>
+      <div><label class="field" for="prenom">Prénom</label><input type="text" id="prenom" autocomplete="given-name"></div>
+    </div>
+    <div class="row">
+      <div><label class="field" for="ddn">Date de naissance</label><input type="date" id="ddn"></div>
+      <div><label class="field" for="tel">Téléphone</label><input type="tel" id="tel" autocomplete="tel"></div>
+    </div>
+    <label class="field">Vous êtes</label>
+    <label class="opt"><input type="radio" name="sexe" value="Femme"> Une femme</label>
+    <label class="opt"><input type="radio" name="sexe" value="Homme"> Un homme</label>
+    <div class="row">
+      <div><label class="field" for="taille">Taille (cm)</label><input type="number" id="taille" inputmode="numeric" min="120" max="230" placeholder="ex. 165"></div>
+      <div><label class="field" for="poids">Poids (kg)</label><input type="number" id="poids" inputmode="decimal" min="35" max="350" step="0.1" placeholder="ex. 112"></div>
+    </div>
+    <div class="bmi" id="bmiBox"></div>
+    <div class="error" id="err1">Merci de remplir votre nom, prénom, date de naissance, taille et poids.</div>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next data-validate="1">Continuer</button></div>
+</section>
+
+<!-- ÉTAPE 2 : Diabète et traitements -->
+<section class="step" data-step="2">
+  <div class="card">
+    <h2>Diabète et traitements</h2>
+    <label class="field">Avez-vous un diabète ?</label>
+    <label class="opt"><input type="radio" name="diabete" value="non"> Non</label>
+    <label class="opt"><input type="radio" name="diabete" value="dt2"> Oui, un diabète de type 2</label>
+    <label class="opt"><input type="radio" name="diabete" value="dt1"> Oui, un diabète de type 1</label>
+    <label class="opt"><input type="radio" name="diabete" value="nsp"> Je ne sais pas</label>
+
+    <label class="field">Prenez-vous un de ces traitements ? <small style="font-weight:400;color:var(--muted)">(plusieurs choix possibles)</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Insuline"> Insuline <small>Lantus, Toujeo, Tresiba, Abasaglar, Novorapid, Humalog…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Sulfamide/glinide"> Sulfamide ou glinide <small>Diamicron, Amarel, Novonorm…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Gliptine (DPP-4)"> Gliptine <small>Januvia, Xelevia, Galvus, Janumet, Velmetia…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Metformine"> Metformine <small>Glucophage, Stagid…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Gliflozine (SGLT2)"> Gliflozine <small>Jardiance, Forxiga…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Déjà un GLP-1"> Déjà un traitement GLP-1 <small>Ozempic, Trulicity, Mounjaro, Wegovy, Victoza…</small></label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Pilule contraceptive"> Pilule contraceptive</label>
+    <label class="opt"><input type="checkbox" name="ttt" value="Anticoagulant"> Anticoagulant <small>Eliquis, Xarelto, Préviscan, Coumadine…</small></label>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next>Continuer</button></div>
+</section>
+
+<!-- ÉTAPE 3 : Maladies liées au poids -->
+<section class="step" data-step="3">
+  <div class="card">
+    <h2>Problèmes de santé liés au poids</h2>
+    <p class="hint">Cochez ce qu'un médecin vous a déjà dit avoir.</p>
+    <label class="opt"><input type="checkbox" name="comorb" value="Hypertension artérielle"> Hypertension artérielle</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Apnées du sommeil"> Apnées du sommeil</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Maladie du cœur ou des artères"> Maladie du cœur ou des artères <small>infarctus, angine de poitrine, AVC, artérite, stent</small></label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Insuffisance cardiaque"> Insuffisance cardiaque</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Cholestérol ou triglycérides"> Cholestérol ou triglycérides élevés</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Foie gras (stéatose)"> Foie gras (stéatose, NASH)</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Arthrose genoux/hanches"> Arthrose des genoux ou des hanches</label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Prédiabète"> Prédiabète <small>sucre un peu élevé sans diabète</small></label>
+    <label class="opt"><input type="checkbox" name="comorb" value="Chirurgie de l'obésité"> J'ai eu une chirurgie de l'obésité <small>anneau, sleeve, bypass</small></label>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next>Continuer</button></div>
+</section>
+
+<!-- ÉTAPE 4 : Sécurité -->
+<section class="step" data-step="4">
+  <div class="card">
+    <h2>Questions de sécurité</h2>
+    <p class="hint">Répondez à chaque question. En cas de doute, choisissez « Je ne sais pas ».</p>
+    <div id="safety"></div>
+    <div class="alert stop crisis" id="crisis">
+      Si vous avez des idées noires en ce moment, vous n'êtes pas seul(e). Vous pouvez appeler le 3114 (numéro national de prévention du suicide), 24 h/24, gratuit, ou le 15 en cas d'urgence. Parlez-en aussi à votre médecin.
+    </div>
+    <div class="error" id="err4">Merci de répondre à toutes les questions.</div>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next data-validate="4">Continuer</button></div>
+</section>
+
+<!-- ÉTAPE 5 : Information -->
+<section class="step" data-step="5">
+  <div class="card">
+    <h2>Comment ça marche ?</h2>
+    <p>Ces médicaments imitent des hormones produites par l'intestin après le repas. Ils diminuent la faim, rassasient plus vite et aident le pancréas à faire baisser le sucre. Ils s'injectent sous la peau avec un stylo, le plus souvent une fois par semaine. On commence à petite dose et on augmente progressivement.</p>
+  </div>
+  <div class="card">
+    <h2>Le pour et le contre</h2>
+    <div class="cols">
+      <div class="pro"><h3>Les avantages</h3><ul>
+        <li>Une perte de poids importante, variable selon le médicament.</li>
+        <li>Moins de faim et moins d'envies de manger.</li>
+        <li>Chez les diabétiques, une baisse du sucre et souvent moins d'insuline.</li>
+        <li>Une tension, un cholestérol et un foie souvent améliorés.</li>
+        <li>Pour certains, une protection du cœur démontrée.</li>
+        <li>Le plus souvent une seule injection par semaine.</li>
+      </ul></div>
+      <div class="con"><h3>Les inconvénients</h3><ul>
+        <li>Nausées, vomissements, diarrhée ou constipation, surtout au début et à chaque augmentation de dose.</li>
+        <li>À l'arrêt, le poids revient en grande partie : c'est un traitement de longue durée.</li>
+        <li>Une perte de muscle possible sans protéines suffisantes ni activité physique.</li>
+        <li>Des effets rares mais sérieux : calculs de la vésicule, pancréatite.</li>
+        <li>Un coût à votre charge si vous ne remplissez pas les critères de remboursement.</li>
+        <li>Il ne remplace pas l'alimentation et l'activité physique : il les aide.</li>
+      </ul></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Les différents médicaments</h2>
+    <p class="hint">Chiffres moyens observés dans les études ; ils varient d'une personne à l'autre.</p>
+    <div class="tablewrap"><table>
+      <tr><th>Médicament</th><th>Pour qui</th><th>Injection</th><th>Perte de poids moyenne</th><th>À savoir</th></tr>
+      <tr><td>Mounjaro<br><small>tirzépatide</small></td><td>Obésité, diabète de type 2</td><td>1 par semaine</td><td>15 à 20 %</td><td>Le plus efficace sur le poids. Diminue l'efficacité de la pilule au début.</td></tr>
+      <tr><td>Wegovy<br><small>sémaglutide 2,4 mg</small></td><td>Obésité</td><td>1 par semaine</td><td>Environ 15 %</td><td>Protection du cœur démontrée chez les personnes ayant une maladie cardiovasculaire.</td></tr>
+      <tr><td>Ozempic<br><small>sémaglutide</small></td><td>Diabète de type 2</td><td>1 par semaine</td><td>5 à 8 %</td><td>Protection du cœur démontrée chez les diabétiques.</td></tr>
+      <tr><td>Trulicity<br><small>dulaglutide</small></td><td>Diabète de type 2</td><td>1 par semaine</td><td>3 à 5 %</td><td>Bonne tolérance digestive.</td></tr>
+      <tr><td>Saxenda / Victoza<br><small>liraglutide</small></td><td>Obésité / diabète de type 2</td><td>1 par jour</td><td>5 à 8 %</td><td>Plus ancien, injection quotidienne.</td></tr>
+    </table></div>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next>Continuer</button></div>
+</section>
+
+<!-- ÉTAPE 6 : Réflexion et décision -->
+<section class="step" data-step="6">
+  <div class="card">
+    <h2>Avant de décider</h2>
+    <p class="hint">Cochez ce qui est vrai pour vous.</p>
+    <label class="opt"><input type="checkbox" name="compris" value="Traitement de longue durée compris"> J'ai compris que c'est un traitement de longue durée et que le poids revient à l'arrêt.</label>
+    <label class="opt"><input type="checkbox" name="compris" value="Effets digestifs acceptés"> Je suis prêt(e) à supporter des nausées ou des troubles digestifs au début.</label>
+    <label class="opt"><input type="checkbox" name="compris" value="Prêt(e) à changer alimentation et activité"> Je suis prêt(e) à manger assez de protéines et à bouger davantage en parallèle.</label>
+    <label class="opt"><input type="checkbox" name="compris" value="Injection acceptée"> Je suis d'accord pour faire une injection sous la peau.</label>
+    <label class="opt"><input type="checkbox" name="compris" value="Suivi accepté"> J'accepte un suivi régulier (consultations, prises de sang).</label>
+    <label class="opt"><input type="checkbox" name="compris" value="Coût éventuel compris"> J'ai compris que le traitement peut rester à ma charge si je ne remplis pas les critères de remboursement.</label>
+
+    <h3>Ma décision</h3>
+    <label class="opt"><input type="radio" name="decision" value="Souhaite commencer"> Je souhaite commencer un traitement</label>
+    <label class="opt"><input type="radio" name="decision" value="Souhaite réfléchir / en parler"> J'ai besoin de réfléchir ou d'en parler avec le médecin</label>
+    <label class="opt"><input type="radio" name="decision" value="Ne souhaite pas"> Je ne souhaite pas de traitement</label>
+
+    <label class="field" for="questions">Mes questions pour le médecin (facultatif)</label>
+    <textarea id="questions" placeholder="Écrivez ici ce que vous voulez demander"></textarea>
+    <div class="error" id="err6">Merci de choisir votre décision.</div>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="primary" data-next data-validate="6">Voir mon résultat</button></div>
+</section>
+
+<!-- ÉTAPE 7 : Résultat et envoi -->
+<section class="step" data-step="7">
+  <div class="card">
+    <h2>Votre résultat</h2>
+    <p class="hint">Ce résultat est une orientation. Le médecin vérifiera tout avec vous avant toute prescription.</p>
+    <div id="result"></div>
+  </div>
+  <div class="card" id="sendBlock">
+    <h2>Envoyer au secrétariat</h2>
+    <p>Le bouton ouvre votre messagerie avec un mail déjà rempli. Vérifiez-le, puis appuyez sur « Envoyer ».</p>
+    <div class="alert warn">Attention : c'est seulement au moment où vous envoyez ce mail que vos informations (nom, date de naissance, réponses de santé) quittent votre appareil. Elles partent alors par votre messagerie au secrétariat de la clinique, et uniquement à lui.</div>
+    <label class="opt"><input type="checkbox" id="consent"> J'accepte d'envoyer ces informations de santé au secrétariat de la Clinique Manoir en Berry pour préparer ma prise en charge.</label>
+    <div class="nav" style="flex-direction:column">
+      <button class="primary" id="sendBtn" disabled>Ouvrir ma messagerie</button>
+      <button class="secondary" id="copyBtn">Copier le récapitulatif</button>
+    </div>
+    <p class="hint" style="margin-top:10px">Si votre messagerie ne s'ouvre pas, copiez le récapitulatif et envoyez-le à <span id="mailShown"></span>.</p>
+    <h3>Récapitulatif</h3>
+    <pre class="recap" id="recap"></pre>
+  </div>
+  <div class="nav"><button class="secondary" data-prev>Retour</button><button class="secondary" onclick="window.print()">Imprimer</button></div>
+</section>
+</main>
+
+<footer>Clinique Manoir en Berry · 7 rue du Golf, 36160 Pouligny-Notre-Dame · 02 54 06 20 00<br>
+Aucune donnée n'est enregistrée ni transmise par cette page : vos réponses restent sur votre appareil. Ce questionnaire ne remplace pas une consultation.</footer>
+
+<script>
+// ============================================================
+// RÉGLAGE : adresse mail du secrétariat (à remplacer)
+const SECRETARIAT_EMAIL = "secmed00@cliniquedumanoir-med.fr";
+// ============================================================
+
+const SAFETY = [
+  { id: "cmt",   q: "Vous ou un membre de votre famille avez-vous eu un cancer médullaire de la thyroïde, ou une maladie appelée NEM 2 ?", lvl: "stop" },
+  { id: "preg",  q: "Êtes-vous enceinte, allaitez-vous, ou avez-vous un projet de grossesse dans l'année ?", lvl: "stop", femme: true },
+  { id: "panc",  q: "Avez-vous déjà eu une pancréatite (inflammation du pancréas) ?", lvl: "warn" },
+  { id: "gastro",q: "Avez-vous une maladie de l'estomac qui se vide mal (gastroparésie) ou une maladie inflammatoire de l'intestin (Crohn, RCH) ?", lvl: "warn" },
+  { id: "vesic", q: "Avez-vous des calculs dans la vésicule biliaire ?", sub: "Répondez non si la vésicule a été retirée.", lvl: "warn" },
+  { id: "rein",  q: "Avez-vous une insuffisance rénale sévère ou êtes-vous dialysé(e) ?", lvl: "warn" },
+  { id: "retino",q: "Avez-vous une atteinte des yeux liée au diabète (rétinopathie) ?", lvl: "warn", diab: true },
+  { id: "tca",   q: "Vous arrive-t-il de vous faire vomir, de jeûner de façon très stricte, ou d'avoir des crises où vous mangez sans pouvoir vous arrêter ?", lvl: "warn" },
+  { id: "moral", q: "Avez-vous en ce moment des idées noires ou des pensées de vous faire du mal ?", lvl: "warn", crisis: true },
+  { id: "chir",  q: "Avez-vous une opération prévue dans les 3 prochains mois ?", sub: "Ces médicaments ralentissent l'estomac : il faut prévenir l'anesthésiste.", lvl: "info" },
+];
+
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const steps = $$(".step");
+let cur = 0;
+
+function buildSafety() {
+  const box = $("#safety");
+  box.innerHTML = "";
+  const femme = getRadio("sexe") === "Femme";
+  const diab = getRadio("diabete") === "dt2" || getRadio("diabete") === "dt1";
+  SAFETY.forEach((s) => {
+    if (s.femme && !femme) return;
+    if (s.diab && !diab) return;
+    const prev = getRadio("s_" + s.id);
+    const d = document.createElement("div");
+    d.className = "yn";
+    d.innerHTML = `<div class="q">${s.q}${s.sub ? `<small>${s.sub}</small>` : ""}</div>
+      <div class="btns">${["Oui", "Non", "Je ne sais pas"].map(v =>
+        `<label><input type="radio" name="s_${s.id}" value="${v}" ${prev === v ? "checked" : ""}>${v}</label>`).join("")}</div>`;
+    box.appendChild(d);
+  });
+  box.querySelectorAll('input[name="s_moral"]').forEach(i => i.addEventListener("change", () => {
+    $("#crisis").style.display = getRadio("s_moral") === "Oui" ? "block" : "none";
+  }));
+  $("#crisis").style.display = getRadio("s_moral") === "Oui" ? "block" : "none";
+}
+
+function activeSafety() {
+  const femme = getRadio("sexe") === "Femme";
+  const diab = getRadio("diabete") === "dt2" || getRadio("diabete") === "dt1";
+  return SAFETY.filter(s => !(s.femme && !femme) && !(s.diab && !diab));
+}
+
+function getRadio(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ""; }
+function getChecks(name) { return $$(`input[name="${name}"]:checked`).map(i => i.value); }
+function val(id) { return ($("#" + id).value || "").trim(); }
+
+function bmi() {
+  const t = parseFloat(val("taille")), p = parseFloat(val("poids"));
+  if (!t || !p || t < 100) return null;
+  return p / Math.pow(t / 100, 2);
+}
+function age() {
+  const d = val("ddn"); if (!d) return null;
+  const b = new Date(d), n = new Date();
+  let a = n.getFullYear() - b.getFullYear();
+  if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--;
+  return a;
+}
+
+function updateBmi() {
+  const b = bmi(), box = $("#bmiBox");
+  if (!b) { box.style.display = "none"; return; }
+  let cls = "corpulence normale";
+  if (b >= 40) cls = "obésité de grade 3"; else if (b >= 35) cls = "obésité de grade 2";
+  else if (b >= 30) cls = "obésité de grade 1"; else if (b >= 25) cls = "surpoids";
+  box.textContent = `Votre IMC : ${b.toFixed(1).replace(".", ",")} kg/m² (${cls})`;
+  box.style.display = "block";
+}
+
+function validate(n) {
+  if (n === 1) {
+    const ok = val("nom") && val("prenom") && val("ddn") && bmi();
+    $("#err1").style.display = ok ? "none" : "block";
+    return !!ok;
+  }
+  if (n === 4) {
+    const ok = activeSafety().every(s => getRadio("s_" + s.id));
+    $("#err4").style.display = ok ? "none" : "block";
+    return ok;
+  }
+  if (n === 6) {
+    const ok = !!getRadio("decision");
+    $("#err6").style.display = ok ? "none" : "block";
+    return ok;
+  }
+  return true;
+}
+
+function evaluate() {
+  const b = bmi(), a = age();
+  const diab = getRadio("diabete");
+  const ttt = getChecks("ttt");
+  const comorb = getChecks("comorb").filter(c => c !== "Chirurgie de l'obésité");
+  const bariatric = getChecks("comorb").includes("Chirurgie de l'obésité");
+  const out = [];   // {lvl, txt}
+
+  // Contre-indications et situations bloquantes
+  const stops = [];
+  if (a !== null && a < 18) stops.push("ce questionnaire concerne les adultes ; pour un mineur, la décision se prend en consultation spécialisée");
+  if (diab === "dt1") stops.push("ces traitements ne sont pas indiqués dans le diabète de type 1");
+  activeSafety().forEach(s => {
+    if (s.lvl === "stop" && getRadio("s_" + s.id) === "Oui") {
+      stops.push(s.id === "cmt" ? "un antécédent de cancer médullaire de la thyroïde ou de NEM 2 est une contre-indication"
+        : "ces traitements sont contre-indiqués pendant la grossesse et l'allaitement, et doivent être arrêtés avant un projet de grossesse");
+    }
+  });
+  stops.forEach(t => out.push({ lvl: "stop", txt: t.charAt(0).toUpperCase() + t.slice(1) + "." }));
+
+  // Orientation obésité
+  let obes = "";
+  if (b >= 40 || (b >= 35 && comorb.length)) {
+    obes = "Votre IMC" + (b < 40 ? " et vos problèmes de santé liés au poids semblent" : " semble") +
+      " correspondre aux critères de remboursement des traitements de l'obésité (Mounjaro, Wegovy), sous réserve de la confirmation du médecin.";
+    out.push({ lvl: "ok", txt: obes });
+  } else if (b >= 30 || (b >= 27 && comorb.length)) {
+    obes = "Un traitement de l'obésité peut être envisagé médicalement, mais avec votre IMC il ne serait probablement pas remboursé : il resterait à votre charge.";
+    out.push({ lvl: "warn", txt: obes });
+  } else if (diab !== "dt2") {
+    obes = "Avec votre IMC, ces traitements ne sont en principe pas indiqués pour le poids. Le médecin pourra vous proposer d'autres solutions.";
+    out.push({ lvl: "warn", txt: obes });
+  }
+
+  // Orientation diabète
+  if (diab === "dt2") out.push({ lvl: "ok", txt: "Avec un diabète de type 2, plusieurs traitements de cette famille peuvent être prescrits (Ozempic, Trulicity, Mounjaro, Victoza) selon l'équilibre de votre diabète. Le médecin vérifiera les conditions de remboursement." });
+  if (diab === "nsp") out.push({ lvl: "info", txt: "Une prise de sang (glycémie, HbA1c) permettra de savoir si vous avez un diabète." });
+
+  // Points de vigilance
+  activeSafety().forEach(s => {
+    const r = getRadio("s_" + s.id);
+    if (s.lvl === "stop") return;
+    if (r === "Oui" || (r === "Je ne sais pas" && s.lvl === "warn")) {
+      const map = {
+        panc: "Antécédent de pancréatite : ces traitements sont en général déconseillés. Le médecin en discutera avec vous.",
+        gastro: "Maladie de l'estomac ou de l'intestin : le traitement peut aggraver les troubles digestifs. À discuter avec le médecin.",
+        vesic: "Calculs de la vésicule : la perte de poids rapide peut provoquer des crises. Une échographie pourra être proposée.",
+        rein: "Insuffisance rénale : le traitement reste souvent possible, mais il faut éviter la déshydratation et surveiller les reins.",
+        retino: "Rétinopathie : un examen des yeux est nécessaire avant de commencer, car une baisse rapide du sucre peut la fragiliser au début.",
+        tca: "Vous avez signalé des difficultés avec la nourriture : c'est important et sans jugement. Le médecin en parlera avec vous pour choisir l'accompagnement le plus adapté.",
+        moral: "Votre moral : parlez-en à votre médecin. Un suivi adapté sera proposé en même temps que le traitement.",
+        chir: "Opération prévue : prévenez l'anesthésiste, le traitement devra peut-être être suspendu avant.",
+      };
+      const prefix = r === "Je ne sais pas" ? "(Réponse « Je ne sais pas ») " : "";
+      out.push({ lvl: s.lvl === "info" ? "info" : "warn", txt: prefix + map[s.id] });
+    }
+  });
+
+  // Traitements en cours
+  if (ttt.includes("Insuline") || ttt.includes("Sulfamide/glinide"))
+    out.push({ lvl: "info", txt: "Insuline ou sulfamide : les doses seront réduites au début pour éviter les hypoglycémies. Surveillez votre glycémie." });
+  if (ttt.includes("Gliptine (DPP-4)"))
+    out.push({ lvl: "info", txt: "Votre gliptine sera arrêtée : elle agit de la même façon et n'apporte rien en plus." });
+  if (ttt.includes("Déjà un GLP-1"))
+    out.push({ lvl: "info", txt: "Vous avez déjà un traitement de cette famille : le médecin évaluera s'il faut le poursuivre, l'augmenter ou en changer." });
+  if (ttt.includes("Pilule contraceptive"))
+    out.push({ lvl: "info", txt: "Pilule : le Mounjaro diminue son efficacité au début et à chaque augmentation de dose. Un préservatif sera nécessaire pendant ces périodes, ou une autre contraception." });
+  if (ttt.includes("Gliflozine (SGLT2)"))
+    out.push({ lvl: "info", txt: "Jardiance ou Forxiga : à suspendre en cas de vomissements ou si vous ne pouvez pas boire ni manger." });
+  if (bariatric)
+    out.push({ lvl: "info", txt: "Après une chirurgie de l'obésité, le traitement est possible et efficace, mais les nausées et le reflux peuvent être plus gênants. Un bilan des vitamines sera fait." });
+  if (a !== null && a >= 70)
+    out.push({ lvl: "info", txt: "Après 70 ans, une attention particulière sera portée aux muscles : alimentation riche en protéines et activité physique adaptée." });
+  if (comorb.includes("Maladie du cœur ou des artères"))
+    out.push({ lvl: "info", txt: "Maladie du cœur ou des artères : certains médicaments de cette famille (Wegovy, Ozempic) ont montré une protection du cœur. Le médecin en tiendra compte dans son choix." });
+
+  return { out, b, a, diab, ttt, comorb, bariatric, stops };
+}
+
+const LVL_LABEL = { stop: "Contre-indication", warn: "À discuter", ok: "Favorable", info: "À savoir" };
+
+function buildRecap(ev) {
+  const lines = [];
+  const diabTxt = { non: "Non", dt2: "Type 2", dt1: "Type 1", nsp: "Ne sait pas" }[ev.diab] || "Non renseigné";
+  lines.push("QUESTIONNAIRE TRAITEMENT GLP-1");
+  lines.push(`Patient : ${val("nom").toUpperCase()} ${val("prenom")} – né(e) le ${val("ddn").split("-").reverse().join("/")}${ev.a !== null ? ` (${ev.a} ans)` : ""}`);
+  lines.push(`Sexe : ${getRadio("sexe") || "NR"} – Tél : ${val("tel") || "NR"}`);
+  lines.push(`Taille ${val("taille")} cm – Poids ${val("poids")} kg – IMC ${ev.b.toFixed(1).replace(".", ",")}`);
+  lines.push(`Diabète : ${diabTxt}`);
+  lines.push(`Traitements : ${ev.ttt.join(", ") || "aucun coché"}`);
+  lines.push(`Comorbidités : ${getChecks("comorb").join(", ") || "aucune cochée"}`);
+  lines.push("");
+  lines.push("SÉCURITÉ");
+  activeSafety().forEach(s => lines.push(`- ${s.q.replace(/\s*\?$/, "")} : ${getRadio("s_" + s.id)}`));
+  lines.push("");
+  lines.push("ORIENTATION AUTOMATIQUE (à confirmer)");
+  ev.out.forEach(o => lines.push(`- [${LVL_LABEL[o.lvl]}] ${o.txt}`));
+  lines.push("");
+  lines.push("COMPRÉHENSION");
+  const c = getChecks("compris");
+  lines.push(c.length ? c.map(x => "- " + x).join("\n") : "- Rien coché");
+  lines.push("");
+  lines.push(`DÉCISION : ${getRadio("decision")}`);
+  if (val("questions")) { lines.push(""); lines.push("QUESTIONS : " + val("questions")); }
+  lines.push("");
+  lines.push(`Rempli le ${new Date().toLocaleDateString("fr-FR")}`);
+  return lines.join("\n");
+}
+
+function showResult() {
+  const ev = evaluate();
+  const box = $("#result");
+  box.innerHTML = "";
+  if (!ev.out.length) ev.out.push({ lvl: "info", txt: "Le médecin examinera vos réponses avec vous." });
+  // Trier : contre-indications d'abord
+  const order = { stop: 0, ok: 1, warn: 2, info: 3 };
+  ev.out.sort((x, y) => order[x.lvl] - order[y.lvl]);
+  ev.out.forEach(o => {
+    const d = document.createElement("div");
+    d.className = "alert " + o.lvl;
+    d.textContent = o.txt;
+    box.appendChild(d);
+  });
+  const dec = document.createElement("p");
+  dec.innerHTML = `<strong>Votre décision :</strong> ${getRadio("decision")}`;
+  box.appendChild(dec);
+  $("#recap").textContent = buildRecap(ev);
+  $("#mailShown").textContent = SECRETARIAT_EMAIL;
+}
+
+function go(n) {
+  steps[cur].classList.remove("active");
+  cur = Math.max(0, Math.min(steps.length - 1, n));
+  if (cur === 4) buildSafety();
+  if (cur === 7) showResult();
+  steps[cur].classList.add("active");
+  $("#bar").style.width = (cur / (steps.length - 1) * 100) + "%";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$$("[data-next]").forEach(b => b.addEventListener("click", () => {
+  const v = b.getAttribute("data-validate");
+  if (v && !validate(parseInt(v, 10))) return;
+  go(cur + 1);
+}));
+$$("[data-prev]").forEach(b => b.addEventListener("click", () => go(cur - 1)));
+["taille", "poids"].forEach(id => $("#" + id).addEventListener("input", updateBmi));
+
+$("#consent").addEventListener("change", e => { $("#sendBtn").disabled = !e.target.checked; });
+$("#sendBtn").addEventListener("click", () => {
+  const subject = `Questionnaire GLP-1 – ${val("nom").toUpperCase()} ${val("prenom")}`;
+  const body = $("#recap").textContent;
+  window.location.href = `mailto:${SECRETARIAT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+});
+$("#copyBtn").addEventListener("click", async () => {
+  const txt = $("#recap").textContent;
+  try { await navigator.clipboard.writeText(txt); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta);
+    ta.select(); try { document.execCommand("copy"); } catch (_) {} ta.remove();
+  }
+  $("#copyBtn").textContent = "Récapitulatif copié";
+  setTimeout(() => $("#copyBtn").textContent = "Copier le récapitulatif", 2500);
+});
+</script>
+</body>
+</html>
